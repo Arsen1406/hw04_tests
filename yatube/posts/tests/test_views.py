@@ -160,4 +160,3 @@ class PaginatorViewsTest(TestCase):
                     f'Paginator страницы - 2, '
                     f'{reverse_name} работает не правильно'
                 )
-

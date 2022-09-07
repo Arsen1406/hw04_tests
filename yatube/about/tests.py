@@ -46,4 +46,3 @@ class AboutViewsTest(TestCase):
             with self.subTest(reverse_name=reverse_name):
                 response = self.guest_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
-

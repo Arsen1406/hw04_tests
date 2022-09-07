@@ -59,4 +59,3 @@ class PostModelTest(TestCase):
                 self.assertEqual(
                     task._meta.get_field(field).help_text, expend_value
                 )
-

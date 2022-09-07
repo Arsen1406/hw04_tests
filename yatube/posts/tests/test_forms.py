@@ -11,7 +11,7 @@ class PostCreateFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        user = User.objects.create_user(username='TestUser')
+        User.objects.create_user(username='TestUser')
         Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
