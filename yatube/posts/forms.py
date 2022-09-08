@@ -16,4 +16,3 @@ class PostForm(forms.ModelForm):
         help_text = {
             'text': ('Обязательное поле, не должно быть пустым')
         }
-
