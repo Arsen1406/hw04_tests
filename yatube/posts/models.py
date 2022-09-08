@@ -40,4 +40,4 @@ class Post(models.Model):
     )
 
     def __str__(self):
-        return self.text[:MAX_LENGTH_TEXT]
+        return self.text[:self.MAX_LENGTH_TEXT]
