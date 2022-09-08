@@ -6,12 +6,10 @@ from .ulits import get_paginated_post
 
 
 def index(request):
-    main = "Последние обновления на сайте"
     post_list = Post.objects.order_by('-pub_date')
     page_obj = get_paginated_post(request, post_list)
     context = {
         'page_obj': page_obj,
-        'main': main
     }
     template = 'posts/index.html'
     return render(request, template, context)
@@ -82,7 +80,6 @@ def post_edit(request, post_id):
     form = PostForm(request.POST or None, instance=post)
     if form.is_valid():
         post = form.save(commit=False)
-        post.author = request.user
         post.save()
         return redirect('posts:post_detail', post_id=post_id)
 
