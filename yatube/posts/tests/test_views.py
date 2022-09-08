@@ -133,13 +133,11 @@ class PostPagesTest(TestCase):
             reverse('posts:edit', kwargs={'post_id': POST_ID}))
         self.assertEqual(HTTPStatus(response_create.status_code).phrase,
                          'Found',
-                         f'Не авторизованый пользователь '
-                         f'не может создавать посты'
+                         'Гость не может создать пост'
                          )
         self.assertEqual(HTTPStatus(response_edit.status_code).phrase,
                          'Found',
-                         f'Не авторизованый пользователь '
-                         f'не может изменять посты'
+                         'Гость не может менять посты'
                          )
 
     def test_posts_correct_context_post_edit_user_post(self):
@@ -148,8 +146,7 @@ class PostPagesTest(TestCase):
             reverse('posts:edit', kwargs={'post_id': post_id}))
         self.assertEqual(HTTPStatus(response.status_code).phrase,
                          'Found',
-                         f'Пользователь может редактировать'
-                         f'только свои посты'
+                         'Юзер может редактировать только свои посты'
                          )
 
 
