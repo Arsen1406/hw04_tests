@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from http import HTTPStatus
 from django.test import Client, TestCase
 from django.urls import reverse
 from ..models import Post, Group
@@ -8,6 +9,7 @@ User = get_user_model()
 POST_ID = '1'
 POST_TEXT = 'Тестовый пост'
 USER_NAME = 'TestUser'
+USER_NAME_2 = 'TestUser_2'
 GROUP_TITLE = 'Тестовая группа'
 GROUP_SLUG = 'test-slug'
 GROUP_DISCRIPTION = 'Тестовое описание'
@@ -21,8 +23,8 @@ TEMLATES_PAGES = {
 }
 
 
-def create_user():
-    user = User.objects.create_user(username=USER_NAME)
+def create_user(username):
+    user = User.objects.create_user(username=username)
     return user
 
 
@@ -48,9 +50,11 @@ class PostPagesTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         group_create()
-        post_create(create_user())
+        post_create(create_user(USER_NAME))
+        post_create(create_user(USER_NAME_2))
 
     def setUp(self):
+        self.guest_client = Client()
         self.autorized_client = Client()
         self.user = User.objects.get(username=USER_NAME)
         self.autorized_client.force_login(self.user)
@@ -112,15 +116,41 @@ class PostPagesTest(TestCase):
                          f'post неверно передается в {response}')
 
     def test_posts_correct_context_post_edit(self):
-        response = self.autorized_client.get(
-            reverse('posts:edit', kwargs={'post_id': POST_ID}))
-        first_object = response.context['post']
-        self.assertEqual(first_object.text,
+        rev_http = reverse('posts:edit', kwargs={'post_id': POST_ID})
+        response = self.autorized_client.get(rev_http)
+        first_object = response.context['form']
+        group = Group.objects.get(pk=first_object.initial['group'])
+        self.assertEqual(first_object.initial['text'],
                          POST_TEXT,
-                         f'post неверно передается в {response}')
-        self.assertEqual(first_object.group.title,
+                         f'form неверно передается пост в {rev_http}')
+        self.assertEqual(group.title,
                          GROUP_TITLE,
-                         f'post неверно передается в {response}')
+                         f'form неверно передается группа в {rev_http}')
+
+    def test_posts_correct_context_post_create_edit_guest(self):
+        response_create = self.guest_client.get(reverse('posts:post_create'))
+        response_edit = self.guest_client.get(
+            reverse('posts:edit', kwargs={'post_id': POST_ID}))
+        self.assertEqual(HTTPStatus(response_create.status_code).phrase,
+                         'Found',
+                         f'Не авторизованый пользователь '
+                         f'не может создавать посты'
+                         )
+        self.assertEqual(HTTPStatus(response_edit.status_code).phrase,
+                         'Found',
+                         f'Не авторизованый пользователь '
+                         f'не может изменять посты'
+                         )
+
+    def test_posts_correct_context_post_edit_user_post(self):
+        post_id = 2
+        response = self.autorized_client.get(
+            reverse('posts:edit', kwargs={'post_id': post_id}))
+        self.assertEqual(HTTPStatus(response.status_code).phrase,
+                         'Found',
+                         f'Пользователь может редактировать'
+                         f'только свои посты'
+                         )
 
 
 class PaginatorViewsTest(TestCase):
@@ -129,7 +159,7 @@ class PaginatorViewsTest(TestCase):
         COUNT_POST = 13
         super().setUpClass()
         group_create()
-        user = create_user()
+        user = create_user(USER_NAME)
 
         for i in range(COUNT_POST):
             post_create(user)
