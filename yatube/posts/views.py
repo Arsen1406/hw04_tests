@@ -54,7 +54,10 @@ def post_detail(request, post_id):
 def post_create(request):
     user = request.user
     main = 'Создать пост от имени'
-    form = PostForm(request.POST or None)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+    )
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
@@ -77,7 +80,11 @@ def post_edit(request, post_id):
     main = 'Редактировать пост'
     if request.user.id != post.author_id:
         return redirect('posts:post_detail', post_id=post_id)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post
+    )
     if form.is_valid():
         form.save()
         return redirect('posts:post_detail', post_id=post_id)
