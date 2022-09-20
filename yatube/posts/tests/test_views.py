@@ -180,6 +180,35 @@ class PostPagesTest(TestCase):
             'Пользователь может редактировать только свои посты'
         )
 
+    def test_comment_guest_user(self):
+        response = self.guest_client.post(
+            reverse(
+                'posts:add_comment',
+                kwargs={
+                    'post_id': POST_ID
+                }
+            )
+        )
+        self.assertEqual(response.status_code, 302)
+
+    def test_new_comment_correct_display(self):
+        form_data = {
+            'text': 'Тестовый комментарий',
+            'author': self.user,
+            'post': POST_ID
+        }
+        response = self.autorized_client.post(
+            reverse(
+                'posts:add_comment',
+                kwargs={
+                    'post_id': POST_ID
+                }
+            ),
+            data=form_data,
+            follow=True
+        )
+        self.assertContains(response, 'Тестовый комментарий')
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod

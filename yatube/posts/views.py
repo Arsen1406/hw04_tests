@@ -30,9 +30,8 @@ def group_posts(request, slug):
 def profile(request, username):
     author = get_object_or_404(User, username=username)
     posts = Post.objects.filter(author=author).order_by('-pub_date')
-    posts_not_author = Post.objects.exclude(author=author)
+    posts_other = Post.objects.exclude(author=author)
     page_obj = get_paginated_post(request, posts)
-    posts_other = get_paginated_post(request, posts_not_author)
     context = {
         'page_obj': page_obj,
         'posts_other': posts_other,
