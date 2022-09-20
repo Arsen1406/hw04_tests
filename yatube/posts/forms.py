@@ -14,14 +14,6 @@ class PostForm(forms.ModelForm):
             'text': forms.Textarea(attrs={'class': 'card'}),
             'group': forms.Select(attrs={'class': 'card'}),
         }
-        labels = {
-            'group': ('Группа'),
-            'text': ('Текст'),
-            'image': ('Картинка'),
-        }
-        help_text = {
-            'text': ('Обязательное поле, не должно быть пустым')
-        }
 
 
 class CommentForm(forms.ModelForm):
@@ -30,13 +22,4 @@ class CommentForm(forms.ModelForm):
 
         fields = {
             'text': 'Текст комментария'
-        }
-        widgets = {
-            'text': forms.Textarea(attrs={'class': 'card'}),
-        }
-        labels = {
-            'text': ('Текст'),
-        }
-        help_text = {
-            'text': ('Обязательное поле, не должно быть пустым')
         }

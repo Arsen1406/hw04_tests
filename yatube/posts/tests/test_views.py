@@ -84,6 +84,7 @@ class PostPagesTest(TestCase):
         self.autorized_client.force_login(self.user)
 
     def test_pages_uses_correct_template(self):
+        cache.clear()
         templates_pages_names = {
             reverse('posts:index'): 'posts/index.html',
             (reverse('posts:group', kwargs={'slug': GROUP_SLUG})):
@@ -131,6 +132,7 @@ class PostPagesTest(TestCase):
                 self.assertEqual(post_image, 'posts/small.gif')
 
     def test_posts_correct_context_post_detail(self):
+        cache.clear()
         response = self.client.get(
             reverse('posts:post_detail', kwargs={'post_id': POST_ID})
         )
@@ -142,7 +144,11 @@ class PostPagesTest(TestCase):
         self.assertEqual(first_object.group.title,
                          GROUP_TITLE,
                          f'post неверно передается в {response}')
-        self.assertEqual(post_image, 'posts/small.gif')
+        self.assertEqual(
+            post_image,
+            'posts/small.gif',
+            'Картинка передается с ошибкой'
+        )
 
     def test_posts_correct_context_post_edit(self):
         rev_http = reverse('posts:edit', kwargs={'post_id': POST_ID})
@@ -209,6 +215,17 @@ class PostPagesTest(TestCase):
         )
         self.assertContains(response, 'Тестовый комментарий')
 
+    def test_cache_index(self):
+        first_state = self.autorized_client.get(reverse('posts:index'))
+        post_1 = Post.objects.get(pk=1)
+        post_1.text = 'Измененный текст'
+        post_1.save()
+        second_state = self.autorized_client.get(reverse('posts:index'))
+        self.assertEqual(first_state.content, second_state.content)
+        cache.clear()
+        third_state = self.autorized_client.get(reverse('posts:index'))
+        self.assertNotEqual(first_state.content, third_state.content)
+
 
 class PaginatorViewsTest(TestCase):
     @classmethod
@@ -227,6 +244,7 @@ class PaginatorViewsTest(TestCase):
         self.autorized_client.force_login(self.user)
 
     def test_first_page_contains_paginator(self):
+        cache.clear()
         ten_pages = 10
         three_pages = 3
         for reverse_name, template in TEMLATES_PAGES.items():

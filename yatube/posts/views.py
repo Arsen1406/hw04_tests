@@ -1,3 +1,4 @@
+from django.views.decorators.cache import cache_page
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Post, Group, User, Comment
@@ -5,6 +6,7 @@ from .forms import PostForm, CommentForm
 from .ulits import get_paginated_post
 
 
+@cache_page(20 * 1, key_prefix='index_page')
 def index(request):
     post_list = Post.objects.order_by('-pub_date')
     page_obj = get_paginated_post(request, post_list)
