@@ -46,3 +46,20 @@ class Post(models.Model):
 
     def __str__(self):
         return self.text[:self.MAX_LENGTH_TEXT]
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        related_name='comments',
+        on_delete=models.CASCADE
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='comments',
+        on_delete=models.CASCADE
+    )
+    text = models.TextField()
+    created = models.DateTimeField(
+        auto_now_add=True
+    )

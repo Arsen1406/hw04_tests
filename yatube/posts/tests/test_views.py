@@ -1,9 +1,14 @@
+import shutil
+import tempfile
 from django.contrib.auth import get_user_model
 from http import HTTPStatus
-from django.test import Client, TestCase
+from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from ..models import Post, Group
 from django import forms
+from django.conf import settings
 
 User = get_user_model()
 POST_ID = '1'
@@ -36,21 +41,40 @@ def group_create():
     )
 
 
-def post_create(user):
+def post_create(user, img=None):
     Post.objects.create(
         text='Тестовый пост',
         group=Group.objects.get(title=GROUP_TITLE),
-        author=user
+        author=user,
+        image=img
     )
 
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
         super().setUpClass()
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif'
+        )
         group_create()
-        post_create(create_user(USER_NAME))
+        post_create(create_user(USER_NAME), uploaded)
         post_create(create_user(USER_NAME_2))
 
     def setUp(self):
@@ -91,29 +115,34 @@ class PostPagesTest(TestCase):
                 self.assertIsInstance(form_field, expected)
 
     def test_posts_list_page_show_correct_context(self):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
         first_obj = 0
         for reverse_name, template in TEMLATES_PAGES.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.autorized_client.get(reverse_name)
                 first_object = response.context['page_obj'][first_obj]
+                post_image = Post.objects.first().image
                 self.assertEqual(first_object.text,
                                  POST_TEXT,
                                  f'page_obg неверно передается в {template}')
                 self.assertEqual(first_object.group.title,
                                  GROUP_TITLE,
                                  f'page_obg неверно передается в {template}')
+                self.assertEqual(post_image, 'posts/small.gif')
 
     def test_posts_correct_context_post_detail(self):
         response = self.client.get(
             reverse('posts:post_detail', kwargs={'post_id': POST_ID})
         )
         first_object = response.context['post']
+        post_image = Post.objects.first().image
         self.assertEqual(first_object.text,
                          POST_TEXT,
                          f'post неверно передается в {response}')
         self.assertEqual(first_object.group.title,
                          GROUP_TITLE,
                          f'post неверно передается в {response}')
+        self.assertEqual(post_image, 'posts/small.gif')
 
     def test_posts_correct_context_post_edit(self):
         rev_http = reverse('posts:edit', kwargs={'post_id': POST_ID})
@@ -131,23 +160,25 @@ class PostPagesTest(TestCase):
         response_create = self.guest_client.get(reverse('posts:post_create'))
         response_edit = self.guest_client.get(
             reverse('posts:edit', kwargs={'post_id': POST_ID}))
-        self.assertEqual(HTTPStatus(response_create.status_code).phrase,
-                         'Found',
-                         'Гость не может создать пост'
-                         )
-        self.assertEqual(HTTPStatus(response_edit.status_code).phrase,
-                         'Found',
-                         'Гость не может менять посты'
-                         )
+        self.assertEqual(
+            HTTPStatus(response_create.status_code).phrase,
+            'Found',
+            'Не авторизованый пользователь не может создать пост'
+        )
+        self.assertEqual(
+            HTTPStatus(response_edit.status_code).phrase,
+            'Found',
+            'Не авторизованый пользователь не может менять посты')
 
     def test_posts_correct_context_post_edit_user_post(self):
         post_id = 2
         response = self.autorized_client.get(
             reverse('posts:edit', kwargs={'post_id': post_id}))
-        self.assertEqual(HTTPStatus(response.status_code).phrase,
-                         'Found',
-                         'Юзер может редактировать только свои посты'
-                         )
+        self.assertEqual(
+            HTTPStatus(response.status_code).phrase,
+            'Found',
+            'Пользователь может редактировать только свои посты'
+        )
 
 
 class PaginatorViewsTest(TestCase):

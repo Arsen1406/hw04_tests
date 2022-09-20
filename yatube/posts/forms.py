@@ -1,5 +1,5 @@
 from django import forms
-from .models import Post
+from .models import Post, Comment
 
 
 class PostForm(forms.ModelForm):
@@ -18,6 +18,24 @@ class PostForm(forms.ModelForm):
             'group': ('Группа'),
             'text': ('Текст'),
             'image': ('Картинка'),
+        }
+        help_text = {
+            'text': ('Обязательное поле, не должно быть пустым')
+        }
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+
+        fields = {
+            'text': 'Текст комментария'
+        }
+        widgets = {
+            'text': forms.Textarea(attrs={'class': 'card'}),
+        }
+        labels = {
+            'text': ('Текст'),
         }
         help_text = {
             'text': ('Обязательное поле, не должно быть пустым')
