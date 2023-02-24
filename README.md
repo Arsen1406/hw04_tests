@@ -1,3 +1,28 @@
 # hw04_tests
+# Описание проекта
+Данный проект предназначен для тестирования приложения Yatube.
 
-[![CI](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/yandex-praktikum/hw04_tests/actions/workflows/python-app.yml)
+# Технологии
+
+
+
+Клонируйте репозиторий на своё устройство:
+- git clone <ссылка на проект>
+
+Перейдите в директорию:
+- cd api_final_yatube
+
+Разверните виртуальное окружение:
+- python -m venv env или source env/bin/activate 
+
+Обновите pip:
+- python -m pip install --upgrade pip
+
+Установите зависимости из файла requirements.txt:
+- pip install -r requirements.txt
+
+Выполнить миграции:
+- python3 manage.py migrate
+
+Запустить проект:
+- python manage.py runserver
