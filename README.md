@@ -20,9 +20,6 @@ Faker==12.0.1
 Клонируйте репозиторий на своё устройство:<br>
 ```git clone <ссылка на проект>```
 
-Перейдите в директорию:<br>
-```cd api_final_yatube```
-
 Разверните виртуальное окружение:<br>
 ```python -m venv env или source env/bin/activate ```
 
@@ -32,11 +29,11 @@ Faker==12.0.1
 Установите зависимости из файла requirements.txt:<br>
 ```pip install -r requirements.txt```
 
-Выполнить миграции:<br>
-```python3 manage.py migrate```
+Перейдите в дирректорию tests:<br>
+```cd tests```
 
-Запустить проект:<br>
-```python manage.py runserver```
+Запустить тестирование:<br>
+```pytest```
 
 # Автор
 - Григорян Арсен
